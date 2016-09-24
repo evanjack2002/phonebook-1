@@ -17,7 +17,7 @@
 static double diff_in_second(struct timespec t1, struct timespec t2)
 {
     struct timespec diff;
-    if (t2.tv_nsec-t1.tv_nsec < 0) {
+    if (t2.tv_nsec - t1.tv_nsec < 0) {
         diff.tv_sec  = t2.tv_sec - t1.tv_sec - 1;
         diff.tv_nsec = t2.tv_nsec - t1.tv_nsec + 1000000000;
     } else {
@@ -44,13 +44,24 @@ int main(int argc, char *argv[])
 
     /* build the entry */
     entry *pHead, *e;
+#ifdef MLC
+    pHead = (entry *) malloc(sizeof(entry) * MAX_PHONE_BOOK_DATA);
+    memset(pHead, 0, sizeof(sizeof(entry) * MAX_PHONE_BOOK_DATA));
+#else
     pHead = (entry *) malloc(sizeof(entry));
+#endif
     printf("size of entry : %lu bytes\n", sizeof(entry));
     e = pHead;
+#ifndef MLC
     e->pNext = NULL;
+#endif
 
 #if defined(__GNUC__)
+#ifdef MLC
+    __builtin___clear_cache((char *) pHead, (char *) pHead + (sizeof(entry) * MAX_PHONE_BOOK_DATA));
+#else
     __builtin___clear_cache((char *) pHead, (char *) pHead + sizeof(entry));
+#endif
 #endif
     clock_gettime(CLOCK_REALTIME, &start);
     while (fgets(line, sizeof(line), fp)) {
@@ -77,7 +88,11 @@ int main(int argc, char *argv[])
     assert(0 == strcmp(findName(input, e)->lastName, "zyxel"));
 
 #if defined(__GNUC__)
+#ifdef MLC
+    __builtin___clear_cache((char *) pHead, (char *) pHead + (sizeof(entry) * MAX_PHONE_BOOK_DATA));
+#else
     __builtin___clear_cache((char *) pHead, (char *) pHead + sizeof(entry));
+#endif
 #endif
     /* compute the execution time */
     clock_gettime(CLOCK_REALTIME, &start);
@@ -92,7 +107,9 @@ int main(int argc, char *argv[])
     printf("execution time of append() : %lf sec\n", cpu_time1);
     printf("execution time of findName() : %lf sec\n", cpu_time2);
 
+#ifndef MLC
     if (pHead->pNext) free(pHead->pNext);
+#endif
     free(pHead);
 
     return 0;

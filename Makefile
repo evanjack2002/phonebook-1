@@ -1,7 +1,12 @@
 CC ?= gcc
 CFLAGS_common ?= -Wall -std=gnu99
 CFLAGS_orig = -O0
+
+ifeq ($(strip $(OPT)), 1)
+CFLAGS_opt  = -O0 -DMLC
+else
 CFLAGS_opt  = -O0
+endif
 
 EXEC = phonebook_orig phonebook_opt
 
